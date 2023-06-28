@@ -1,0 +1,4 @@
+/TOTAL DE GASTOS.*[\r\n]+((?s)[^\r\n]+.*)(?=DESPESAS NO EXTERIOR)|TOTAL DE GASTOS.*[\r\n]+((?s)[^\r\n]+.*)/gm
+
+dot all
+TOTAL DE GASTOS.*[\r\n]+([\s\S][^\r\n]+[\s\S]*)(?=\nDESPESAS NO EXTERIOR)|TOTAL DE GASTOS.*[\r\n]+([^\r\n]+[\s\S]*)
