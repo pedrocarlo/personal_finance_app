@@ -22,11 +22,8 @@ class MyApp extends StatefulWidget {
 class _MyAppState extends State<MyApp> {
   String text = "";
   String _pdfText = '';
-  List<String> _pdfList = [];
-  int _pdfLength = 0;
 
   bool _loading = false;
-  bool _paginated = false;
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -55,21 +52,10 @@ class _MyAppState extends State<MyApp> {
                     _loading = true;
                   });
                   // Call the function to parse text from pdf
-                  getPDFtextPaginated(file.path).then((pdfList) {
-                    List<String> list = <String>[];
-                    // Remove new lines
-                    pdfList.forEach((element) {
-                      list.add(element.replaceAll("\n", " "));
-                    });
-
-                    getPDFtext(file.path).then((pdfText) {
-                      text = pdfText;
-                    });
-
+                  getPDFtext(file.path).then((pdfText) {
                     setState(() {
-                      _pdfText = text;
-                      _pdfList = list;
-                      _paginated = false;
+                      _pdfText = pdfText;
+                      print(pdfText);
                       _loading = false;
                     });
                   });
@@ -82,26 +68,9 @@ class _MyAppState extends State<MyApp> {
                   )
                 : Expanded(
                     // Check if returning text page by page or the whole document as one string
-                    child: _paginated
-                        ? ListView.builder(
-                            itemCount: _pdfList.length,
-                            itemBuilder: (context, index) {
-                              return Padding(
-                                padding: const EdgeInsets.all(8.0),
-                                child: Card(
-                                  elevation: 10,
-                                  child: Padding(
-                                    padding: const EdgeInsets.all(20.0),
-                                    child: Text(
-                                      _pdfList[index],
-                                    ),
-                                  ),
-                                ),
-                              );
-                            })
-                        : SingleChildScrollView(
-                            child: Text(_pdfText),
-                          ),
+                    child: SingleChildScrollView(
+                      child: Text(_pdfText),
+                    ),
                   )
           ],
         ),
@@ -112,27 +81,27 @@ class _MyAppState extends State<MyApp> {
 
 // Gets all the text from a PDF document, returns it in string.
 Future<String> getPDFtext(String path) async {
-  String text = "";
+  StringBuffer ret = StringBuffer();
   try {
     //Load an existing PDF document.
     final PdfDocument document = PdfDocument(
         inputBytes: File(path).readAsBytesSync(), password: "12936");
-    //Extract the text from all the pages.
-    //Get the document security.
     PdfSecurity security = document.security;
-    //Set owner and user passwords to empty.
     security.ownerPassword = '';
     String text = PdfTextExtractor(document)
         .extractText(startPageIndex: 1, endPageIndex: 1);
+    // document.save();
     //Dispose the document.
     document.dispose();
-    // text = await ReadPdfText.getPDFtext(path);
-    await itauCard(text);
+    List<Transaction> trs = await itauCard(text);
+    for (final tr in trs) {
+      ret.write('${tr.toString()}\n');
+    }
     // List<RegExpMatch> matches = await portoCard(text);
   } on PlatformException {
     print("Failed to get PDF text.");
   }
-  return text;
+  return ret.toString();
 }
 
 // Gets all the text from PDF document, returns it in array where each element is a page of the document.

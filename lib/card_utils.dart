@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'dart:developer';
+import 'package:intl/intl.dart';
 
 import 'package:path_provider/path_provider.dart';
 
@@ -18,10 +19,13 @@ void printLongString(String text) {
 class Transaction {
   DateTime date;
   String name;
-  // String city;
-  // String country;
   String value;
   Transaction(this.date, this.name, this.value);
+
+  @override
+  String toString() {
+    return "${DateFormat('dd-MM-yyyy').format(date)} $name $value";
+  }
 }
 
 Future<List<RegExpMatch>> portoCard(String pdfText) async {
@@ -38,7 +42,7 @@ Future<List<RegExpMatch>> portoCard(String pdfText) async {
     matchList.addAll(exp.allMatches(m.group(0)!));
     break; // TODO remove break after para ver pagamanetos no exterior
   }
-  print('going to print matches');
+  // print('going to print matches');
   List<Transaction> transactions = [];
   LineSplitter splitter = const LineSplitter();
   String cidades = await rootBundle.loadString('assets/cities/municipios.txt');
@@ -83,9 +87,10 @@ Future<List<RegExpMatch>> portoCard(String pdfText) async {
     }
     String? money = moneyExp.firstMatch(t)?.group(0);
 
-    print(date);
-    print(name);
-    print(money);
+    Transaction tr = Transaction(date, name!, money!);
+    // print(date);
+    // print(name);
+    // print(money);
   }
   return matchList;
 }
@@ -101,17 +106,27 @@ Future<List<Transaction>> itauCard(String pdfText) async {
   RegExp listPayExp = RegExp(listPayRegex);
   String? payments = paymentsExp.firstMatch(pdfText)!.group(0);
   String dateRegex = r'^(\d\d\/\d\d)';
-  String moneyRegex = r'[-\d,\.]+(\.\d*)?$';
-  String nameRegex = r'(?<=^\d\d\/\d\d\s).*(?=\s)';
+  String moneyRegex = r'(?:\d\d\/\d\d)?(-?[\d,\.]+(\.\d*)?$)';
+  String nameRegex = r'(?<=^\d\d\/\d\d)\D*(?=\d)';
   Iterable<RegExpMatch>? listPay;
   if (payments != null) {
     listPay = listPayExp.allMatches(payments);
   }
   if (listPay != null) {
     for (final pay in listPay) {
-      
+      print(pay[0]);
+      String? strDate = RegExp(dateRegex).firstMatch(pay[0]!)!.group(0)!;
+      String day = strDate.substring(0, 2);
+      String month = strDate.substring(3, 5);
+      String year = "2023";
+      DateTime date = DateTime.parse('$year-$month-$day').toLocal();
+
+      String? money = RegExp(moneyRegex).firstMatch(pay[0]!)!.group(1);
+      String? name = RegExp(nameRegex).firstMatch(pay[0]!)!.group(0);
+      Transaction tr = Transaction(date, name!, money!);
+      // print(tr.toString());
+      transactions.add(tr);
     }
   }
-  // printLongString(pdfText);
   return transactions;
 }
