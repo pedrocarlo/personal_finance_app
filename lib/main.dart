@@ -1,11 +1,10 @@
 import 'dart:io';
 import 'card_utils.dart';
+import 'transaction_panel.dart';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:read_pdf_text/read_pdf_text.dart';
 import 'package:syncfusion_flutter_pdf/pdf.dart';
 
 void main() {
@@ -21,7 +20,7 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   String text = "";
-  String _pdfText = '';
+  List<Transaction> _trList = [];
 
   bool _loading = false;
   @override
@@ -52,10 +51,9 @@ class _MyAppState extends State<MyApp> {
                     _loading = true;
                   });
                   // Call the function to parse text from pdf
-                  getPDFtext(file.path).then((pdfText) {
+                  getPDFtext(file.path).then((trList) {
                     setState(() {
-                      _pdfText = pdfText;
-                      print(pdfText);
+                      _trList = trList;
                       _loading = false;
                     });
                   });
@@ -68,9 +66,7 @@ class _MyAppState extends State<MyApp> {
                   )
                 : Expanded(
                     // Check if returning text page by page or the whole document as one string
-                    child: SingleChildScrollView(
-                      child: Text(_pdfText),
-                    ),
+                    child: Panels(steps: tr2Step(_trList)),
                   )
           ],
         ),
@@ -80,8 +76,9 @@ class _MyAppState extends State<MyApp> {
 }
 
 // Gets all the text from a PDF document, returns it in string.
-Future<String> getPDFtext(String path) async {
-  StringBuffer ret = StringBuffer();
+Future<List<Transaction>> getPDFtext(String path) async {
+  // StringBuffer ret = StringBuffer();
+  List<Transaction> trs = [];
   try {
     //Load an existing PDF document.
     final PdfDocument document = PdfDocument(
@@ -93,25 +90,17 @@ Future<String> getPDFtext(String path) async {
     // document.save();
     //Dispose the document.
     document.dispose();
-    List<Transaction> trs = await itauCard(text);
-    for (final tr in trs) {
-      ret.write('${tr.toString()}\n');
-    }
+    trs = await itauCard(text);
+    // for (final tr in trs) {
+    //   ret.write('${tr.toString()}\n');
+    // }
     // List<RegExpMatch> matches = await portoCard(text);
   } on PlatformException {
     print("Failed to get PDF text.");
   }
-  return ret.toString();
+  return trs;
 }
 
-// Gets all the text from PDF document, returns it in array where each element is a page of the document.
-Future<List<String>> getPDFtextPaginated(String path) async {
-  return ["teste"];
-  List<String> textList = <String>[];
-  try {
-    textList = await ReadPdfText.getPDFtextPaginated(path);
-  } on PlatformException {
-    print("Failed to get PDF text.");
-  }
-  return textList;
+List<Panel> tr2Step(List<Transaction> trs) {
+  return trs.map<Panel>((Transaction tr) => Panel(tr)).toList();
 }

@@ -1,9 +1,11 @@
+import 'dart:collection';
 import 'dart:convert';
+import 'dart:ffi';
 import 'dart:io';
-import 'package:flutter/material.dart';
+import 'dart:math';
 import 'package:flutter/services.dart' show rootBundle;
-import 'dart:developer';
 import 'package:intl/intl.dart';
+import 'package:equatable/equatable.dart';
 
 import 'package:path_provider/path_provider.dart';
 
@@ -16,16 +18,42 @@ void printLongString(String text) {
 }
 
 // Eventually make this become a model in sqluentify
-class Transaction {
-  DateTime date;
-  String name;
-  String value;
-  Transaction(this.date, this.name, this.value);
+class Transaction extends Equatable implements Comparable<Transaction> {
+  final DateTime date;
+  final String name;
+  final String value;
+  final String parcela;
+  const Transaction(this.date, this.name, this.value, [this.parcela = ""]);
 
   @override
   String toString() {
-    return "${DateFormat('dd-MM-yyyy').format(date)} $name $value";
+    return """${DateFormat('dd/MM').format(date)} $name $value${(parcela != '') ? " $parcela" : ""}""";
   }
+
+  @override
+  // Return 0 if equivalent else if parcelado return which is greater in parcelas
+  int compareTo(Transaction other) {
+    if (date.compareTo(other.date) +
+                name.compareTo(other.name) +
+                value.compareTo(other.value) ==
+            0 &&
+        parcela != "" &&
+        other.parcela != "") {
+      String parcela = this.parcela.substring(0, 2);
+      String qnt = this.parcela.substring(3, 5); // quantidade de parcelas
+      String otherPar = other.parcela.substring(0, 2);
+      String otherQnt = other.parcela.substring(3, 5); // quantidade de parcelas
+      if (qnt == otherQnt) {
+        return parcela.compareTo(otherPar);
+      }
+    }
+    return date.compareTo(other.date) +
+        name.compareTo(other.name) +
+        value.compareTo(other.value);
+  }
+
+  @override
+  List<Object> get props => [name, value, date];
 }
 
 Future<List<RegExpMatch>> portoCard(String pdfText) async {
@@ -97,6 +125,9 @@ Future<List<RegExpMatch>> portoCard(String pdfText) async {
 
 Future<List<Transaction>> itauCard(String pdfText) async {
   List<Transaction> transactions = [];
+  HashMap<Transaction, List<Transaction>> trsParcelas =
+      HashMap(); // needs to be a dict
+
   final Directory directory = await getApplicationDocumentsDirectory();
   final File file = File('${directory.path}/itau.txt');
   await file.writeAsString(pdfText);
@@ -108,13 +139,14 @@ Future<List<Transaction>> itauCard(String pdfText) async {
   String dateRegex = r'^(\d\d\/\d\d)';
   String moneyRegex = r'(?:\d\d\/\d\d)?(-?[\d,\.]+(\.\d*)?$)';
   String nameRegex = r'(?<=^\d\d\/\d\d)\D*(?=\d)';
+  String parcelaRegex =
+      r'(?!^\d\d\/\d\d)\d\d\/\d\d'; // Pegar se é parcelado a compra
   Iterable<RegExpMatch>? listPay;
   if (payments != null) {
     listPay = listPayExp.allMatches(payments);
   }
   if (listPay != null) {
     for (final pay in listPay) {
-      print(pay[0]);
       String? strDate = RegExp(dateRegex).firstMatch(pay[0]!)!.group(0)!;
       String day = strDate.substring(0, 2);
       String month = strDate.substring(3, 5);
@@ -123,10 +155,22 @@ Future<List<Transaction>> itauCard(String pdfText) async {
 
       String? money = RegExp(moneyRegex).firstMatch(pay[0]!)!.group(1);
       String? name = RegExp(nameRegex).firstMatch(pay[0]!)!.group(0);
-      Transaction tr = Transaction(date, name!, money!);
-      // print(tr.toString());
-      transactions.add(tr);
+      String parcela = RegExp(parcelaRegex).firstMatch(pay[0]!)?.group(0) ?? "";
+      Transaction tr = Transaction(date, name!, money!, parcela);
+      if (parcela != "") {
+        final lst = trsParcelas.putIfAbsent(tr, () => []);
+        lst.add(tr);
+      } else {
+        transactions.add(tr);
+      }
     }
   }
+  for (List<Transaction> trLst in trsParcelas.values) {
+    trLst = [
+      trLst.reduce((curr, next) => curr.compareTo(next) < 0 ? curr : next)
+    ];
+    transactions.addAll(trLst);
+  }
+  transactions.sort(((a, b) => a.date.compareTo(b.date)));
   return transactions;
 }
