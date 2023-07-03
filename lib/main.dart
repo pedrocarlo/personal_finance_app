@@ -1,4 +1,6 @@
 import 'dart:io';
+import 'package:get/get.dart';
+
 import 'card_utils.dart';
 import 'transaction_panel.dart';
 
@@ -26,6 +28,7 @@ class _MyAppState extends State<MyApp> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      theme: ThemeData.dark(useMaterial3: true),
       home: Scaffold(
         appBar: AppBar(
           title: const Text("Test"),
@@ -102,5 +105,5 @@ Future<List<Transaction>> getPDFtext(String path) async {
 }
 
 List<Panel> tr2Step(List<Transaction> trs) {
-  return trs.map<Panel>((Transaction tr) => Panel(tr)).toList();
+  return trs.map<Panel>((Transaction tr) => Panel(tr.obs)).toList();
 }

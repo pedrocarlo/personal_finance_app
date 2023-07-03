@@ -3,7 +3,7 @@ import 'package:get/get.dart';
 import 'package:personal_finance_app/transaction_panel.dart';
 
 class PanelController extends GetxController {
-  var steps = <Panel>[].obs;
+  var steps = <Panel>[];
   var controllerLst = <List<TextEditingController>>[];
 
   List<TextEditingController> createTextControllers() {
@@ -17,6 +17,7 @@ class PanelController extends GetxController {
 
   @override
   void dispose() {
+    // TODO not exactly memory efficient to create and just dispose at the end
     controllerLst.map((var controllers) => controllers.map((e) => e.dispose()));
     super.dispose();
   }

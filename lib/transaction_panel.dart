@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:personal_finance_app/card_utils.dart';
 import 'package:personal_finance_app/panel_controller.dart';
 import 'package:personal_finance_app/transaction_form.dart';
 
 class Panel {
   Panel(this.tr, [this.isExpanded = false]);
-  Transaction tr;
+  Rx<Transaction> tr;
   bool isExpanded;
 }
 
@@ -20,37 +21,45 @@ class Panels extends StatefulWidget {
 class _PanelsState extends State<Panels> {
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      child: Container(
-        child: _renderSteps(),
-      ),
-    );
+    return _renderSteps();
   }
 
   Widget _renderSteps() {
     final panelController = Get.put(PanelController());
-    panelController.steps.value = widget.steps;
-
-    return ExpansionPanelList(
-      expansionCallback: (int index, bool isExpanded) {
-        setState(() {
-          widget.steps[index].isExpanded = !isExpanded;
+    panelController.steps = widget.steps;
+    // return Text("");
+    return ListView.builder(
+        prototypeItem: ElevatedButton(
+            child: Text(''),
+            onPressed: () => showBarModalBottomSheet(
+                backgroundColor: Colors.black45,
+                context: context,
+                builder: (builder) {
+                  return Container();
+                })),
+        itemCount: widget.steps.length,
+        itemBuilder: (context, index) {
+          return Obx(() => ElevatedButton(
+              // TODO if needed use the library for modal bottom sheet
+              onPressed: () => showBarModalBottomSheet(
+                  backgroundColor: Colors.black26,
+                  expand: true,
+                  context: context,
+                  builder: (builder) {
+                    final trObs = panelController.steps[index].tr;
+                    // ever(trObs, (callback) => print('$callback has changed'));
+                    return TransactionForm(trObs: trObs);
+                  }),
+              child: Text(panelController.steps[index].tr.value.toString())));
         });
-      },
-      children: widget.steps.map<ExpansionPanel>((Panel step) {
-        return ExpansionPanel(
-          canTapOnHeader: true,
-          headerBuilder: (BuildContext context, bool isExpanded) {
-            return ListTile(
-              title: Text(step.tr.toString()),
-            );
-          },
-          body: ListTile(
-            title: TransactionForm(step: step),
-          ),
-          isExpanded: step.isExpanded,
-        );
-      }).toList(),
-    );
   }
 }
+
+// showModalBottomSheet(
+//                   isScrollControlled: true,
+//                   useSafeArea: true,
+//                   context: context,
+//                   builder: (builder) {
+//                     return TransactionForm(
+//                         tr: panelController.steps.value[index].tr);
+//                   })

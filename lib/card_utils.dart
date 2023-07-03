@@ -9,6 +9,8 @@ import 'package:equatable/equatable.dart';
 
 import 'package:path_provider/path_provider.dart';
 
+// TODO get o numero da fatura para deixar as transacoes serem unicas
+
 /// Print Long String
 void printLongString(String text) {
   final RegExp pattern = RegExp('.{1,800}'); // 800 is the size of each chunk
