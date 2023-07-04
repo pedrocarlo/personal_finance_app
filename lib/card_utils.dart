@@ -58,6 +58,7 @@ class Transaction extends Equatable implements Comparable<Transaction> {
   List<Object> get props => [name, value, date];
 }
 
+// TODO pegar data da fatura para saber o mes que o app deve adicionar as transacoes
 Future<List<RegExpMatch>> portoCard(String pdfText) async {
   String regex =
       r'TOTAL DE GASTOS.*[\r\n]+([\s\S][^\r\n]+[\s\S]*)(?=\nDESPESAS NO EXTERIOR)|TOTAL DE GASTOS.*[\r\n]+([^\r\n]+[\s\S]*)';

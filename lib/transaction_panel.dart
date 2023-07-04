@@ -42,7 +42,7 @@ class _PanelsState extends State<Panels> {
           return Obx(() => ElevatedButton(
               // TODO if needed use the library for modal bottom sheet
               onPressed: () => showBarModalBottomSheet(
-                  backgroundColor: Colors.black26,
+                  backgroundColor: const Color(0xff121212),
                   expand: true,
                   context: context,
                   builder: (builder) {
@@ -54,12 +54,3 @@ class _PanelsState extends State<Panels> {
         });
   }
 }
-
-// showModalBottomSheet(
-//                   isScrollControlled: true,
-//                   useSafeArea: true,
-//                   context: context,
-//                   builder: (builder) {
-//                     return TransactionForm(
-//                         tr: panelController.steps.value[index].tr);
-//                   })

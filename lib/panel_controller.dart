@@ -8,7 +8,7 @@ class PanelController extends GetxController {
 
   List<TextEditingController> createTextControllers() {
     List<TextEditingController> controllers = [];
-    for (var i = 0; i < 3; i++) {
+    for (var i = 0; i < 2; i++) {
       controllers.add(TextEditingController());
     }
     controllerLst.add(controllers);
