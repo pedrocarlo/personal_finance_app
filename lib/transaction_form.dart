@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
+import 'package:flutter/services.dart';
 
 import 'package:personal_finance_app/card_utils.dart';
+import 'package:personal_finance_app/model/model.dart';
 import 'package:personal_finance_app/panel_controller.dart';
-import 'package:personal_finance_app/transaction_panel.dart';
+import 'package:currency_text_input_formatter/currency_text_input_formatter.dart';
 
 class TransactionForm extends StatefulWidget {
   final Rx<Transaction> trObs;
@@ -38,7 +40,7 @@ class _TransactionFormState extends State<TransactionForm> {
     TextEditingController valueController = controllers[1];
     const decoration = InputDecoration(
         border: InputBorder.none,
-        contentPadding: EdgeInsets.symmetric(horizontal: 10.0, vertical: 0.0));
+        contentPadding: EdgeInsetsDirectional.symmetric(horizontal: 10.0));
     return Form(
         key: _formKey,
         child: ListView(
@@ -49,7 +51,11 @@ class _TransactionFormState extends State<TransactionForm> {
             ),
             TextFormField(
               decoration: decoration,
-              // style: const TextStyle(color: Colors.teal),
+              inputFormatters: [
+                CurrencyTextInputFormatter(
+                    decimalDigits: 2, locale: "pt-BR", name: "")
+              ],
+              keyboardType: TextInputType.number,
               textAlign: TextAlign.end,
               controller: valueController,
               style: const TextStyle(
@@ -59,34 +65,47 @@ class _TransactionFormState extends State<TransactionForm> {
             // TODO add dividers to make it cleaner
             Column(
               children: [
-                const Text('Nome da Transação'),
+                description('Nome da Transação'),
                 ListTile(
+                  contentPadding:
+                      const EdgeInsetsDirectional.symmetric(horizontal: 10.0),
                   // TODO have it that clicking anywhere on the listtile can edit the text field
                   leading: const Icon(Icons.draw_rounded),
                   title: TextFormField(
                     decoration: const InputDecoration(border: InputBorder.none),
                     controller: nameController,
                   ),
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 10.0),
                 ),
                 const Divider(),
                 ListTile(
+                    contentPadding:
+                        const EdgeInsetsDirectional.symmetric(horizontal: 10.0),
                     leading: const Icon(Icons.calendar_month_rounded),
                     title: Obx(() => Text(initialDate.value)),
-                    contentPadding:
-                        const EdgeInsets.symmetric(horizontal: 10.0),
                     onTap: () async {
                       DateTime? pickedDate = await showDatePicker(
                           context: context,
                           initialDate: DateTime.now(),
                           firstDate: DateTime(2000),
-                          //DateTime.now() - not to allow to choose before today.
                           lastDate: DateTime(2100));
                       if (pickedDate != null) {
                         initialDate.value =
                             DateFormat('dd/MM/yyyy').format(pickedDate);
                       }
                     }),
+                const Divider(),
+                description("Categoria"),
+                ListTile(
+                  contentPadding:
+                      const EdgeInsetsDirectional.symmetric(horizontal: 10.0),
+                  // TODO have it that clicking anywhere on the listtile can edit the text field
+                  leading: const Icon(Icons.draw_rounded),
+                  title: TextFormField(
+                    decoration: const InputDecoration(border: InputBorder.none),
+                    // controller: nameController,
+                    initialValue: "TESTE CATEGORIA",
+                  ),
+                ),
                 const Divider(),
                 IconButton(
                   onPressed: () {
@@ -99,8 +118,12 @@ class _TransactionFormState extends State<TransactionForm> {
                       String year = "2023";
                       DateTime date =
                           DateTime.parse('$year-$month-$day').toLocal();
-                      Transaction tr = Transaction(date, nameController.text,
-                          valueController.text, widget.trObs.value.parcela);
+                      Transaction tr = Transaction(
+                          date,
+                          nameController.text,
+                          valueController.text,
+                          widget.trObs.value.fatura,
+                          widget.trObs.value.parcela);
                       widget.trObs.value = tr;
                       // print(widget.step.tr);
                     }
@@ -113,4 +136,12 @@ class _TransactionFormState extends State<TransactionForm> {
           ],
         ));
   }
+}
+
+// Write functions here
+
+Widget description(String text) {
+  return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 10.0),
+      child: Align(alignment: Alignment.centerLeft, child: Text(text)));
 }

@@ -1,8 +1,6 @@
 import 'dart:collection';
 import 'dart:convert';
-import 'dart:ffi';
 import 'dart:io';
-import 'dart:math';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:intl/intl.dart';
 import 'package:equatable/equatable.dart';
@@ -25,7 +23,9 @@ class Transaction extends Equatable implements Comparable<Transaction> {
   final String name;
   final String value;
   final String parcela;
-  const Transaction(this.date, this.name, this.value, [this.parcela = ""]);
+  final int fatura;
+  const Transaction(this.date, this.name, this.value, this.fatura,
+      [this.parcela = ""]);
 
   @override
   String toString() {
@@ -118,7 +118,7 @@ Future<List<RegExpMatch>> portoCard(String pdfText) async {
     }
     String? money = moneyExp.firstMatch(t)?.group(0);
 
-    Transaction tr = Transaction(date, name!, money!);
+    Transaction tr = Transaction(date, name!, money!, 0);
     // print(date);
     // print(name);
     // print(money);
@@ -126,6 +126,7 @@ Future<List<RegExpMatch>> portoCard(String pdfText) async {
   return matchList;
 }
 
+// TODO have better null checking in this file
 Future<List<Transaction>> itauCard(String pdfText) async {
   List<Transaction> transactions = [];
   HashMap<Transaction, List<Transaction>> trsParcelas =
@@ -133,7 +134,15 @@ Future<List<Transaction>> itauCard(String pdfText) async {
 
   final Directory directory = await getApplicationDocumentsDirectory();
   final File file = File('${directory.path}/itau.txt');
-  await file.writeAsString(pdfText);
+  await file.writeAsString(pdfText); // TODO remove this eventually
+
+  String documentRegex = r"\d{11}\/\d{7}";
+  num faturaNum = int.tryParse(RegExp(documentRegex)
+          .firstMatch(pdfText)!
+          .group(0)!
+          .replaceAll("/", "")) ??
+      0.0;
+
   String paymentsRegex = r"(?=\d\d\/\d\d).*(?=Programa)";
   RegExp paymentsExp = RegExp(paymentsRegex);
   String listPayRegex = r'\d{2}\/\d{2}[^,\s]+\d{0,3}(?:,\d{2})';
@@ -159,7 +168,8 @@ Future<List<Transaction>> itauCard(String pdfText) async {
       String? money = RegExp(moneyRegex).firstMatch(pay[0]!)!.group(1);
       String? name = RegExp(nameRegex).firstMatch(pay[0]!)!.group(0);
       String parcela = RegExp(parcelaRegex).firstMatch(pay[0]!)?.group(0) ?? "";
-      Transaction tr = Transaction(date, name!, money!, parcela);
+      Transaction tr =
+          Transaction(date, name!, money!, faturaNum as int, parcela);
       if (parcela != "") {
         final lst = trsParcelas.putIfAbsent(tr, () => []);
         lst.add(tr);
