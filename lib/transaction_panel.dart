@@ -3,10 +3,13 @@ import 'package:get/get.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:intl/intl.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
+import 'package:path/path.dart';
 import 'package:personal_finance_app/card_utils.dart';
+import 'package:personal_finance_app/model/model.dart';
 import 'package:personal_finance_app/panel_controller.dart';
 import 'package:personal_finance_app/transaction_form.dart';
 import 'package:collection_ext/ranges.dart';
+import 'package:sqflite/sqflite.dart' hide Transaction;
 
 class Panel {
   Panel(this.tr, [this.isExpanded = false]);
@@ -24,7 +27,21 @@ class Panels extends StatefulWidget {
 class _PanelsState extends State<Panels> {
   @override
   Widget build(BuildContext context) {
-    return _renderSteps();
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text("Test"),
+      ),
+      bottomNavigationBar: BottomNavigationBar(items: const [
+        BottomNavigationBarItem(icon: Icon(Icons.home), label: "Home"),
+        BottomNavigationBarItem(icon: Icon(Icons.business), label: "Business")
+      ]),
+      body: _renderSteps(),
+      floatingActionButton: Padding(
+        padding: EdgeInsets.only(left: 30),
+        child: Align(
+            alignment: Alignment.bottomCenter, child: _floatingActionButton()),
+      ),
+    );
   }
 
   Widget _renderSteps() {
@@ -32,6 +49,7 @@ class _PanelsState extends State<Panels> {
     panelController.steps = widget.steps;
 
     return GridView.builder(
+      shrinkWrap: true,
       padding: const EdgeInsets.symmetric(horizontal: 7.0),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: 2, mainAxisSpacing: 20.0, crossAxisSpacing: 15.0),
@@ -48,7 +66,6 @@ class _PanelsState extends State<Panels> {
               ]),
           child: GestureDetector(
             onTap: () => showBarModalBottomSheet(
-                backgroundColor: const Color(0xff121212),
                 expand: true,
                 context: context,
                 builder: (builder) {
@@ -57,7 +74,6 @@ class _PanelsState extends State<Panels> {
                   return TransactionForm(trObs: trObs);
                 }),
             child: Card(
-              // TODO SEE A WAY TO HAVE THIS SINGLE CHILD SCROLLVIEW VANISH AND HAVE NO TEXT OVERFLOW
               child: Padding(
                 padding: const EdgeInsets.all(11.0),
                 child: Column(children: [
@@ -104,10 +120,50 @@ class _PanelsState extends State<Panels> {
       },
     );
   }
-}
 
-// GridView.builder(
-//       scrollDirection: Axis.horizontal,
-//       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 2),
-      
-//     );
+  Widget _floatingActionButton() {
+    return FloatingActionButton.extended(
+      label: const Text("Submit"),
+      onPressed: () async {
+        var numberFormat = NumberFormat();
+
+        final List<Cartao> placeholder = [];
+        double value;
+        for (var e in widget.steps) {
+          try {
+            value = numberFormat.parse(e.tr.value.value) as double;
+          } catch (e) {
+            value = 0.0;
+          }
+          placeholder.add(Cartao(
+              date: e.tr.value.date,
+              name: e.tr.value.name,
+              value: value,
+              parcela: e.tr.value.parcela,
+              fatura: e.tr.value.fatura,
+              card: "ITAU"));
+          // TODO CHANGE HERE THE CARD NAME TO BE DYNAMIC
+        }
+        final results = await Cartao.saveAll(placeholder);
+
+        // TODO remove this after testing
+        print(widget.steps[0].tr.value.value);
+        final productList = await Cartao().select().toList();
+
+        for (int i = 0; i < productList.length; i++) {
+          print(productList[i].toMap());
+        }
+
+        // LEAVE DATABASE OPEN FOR DEBUGGING
+        WidgetsFlutterBinding.ensureInitialized();
+        final database = await openDatabase(
+          // Set the path to the database. Note: Using the `join` function from the
+          // `path` package is best practice to ensure the path is correctly
+          // constructed for each platform.
+          join(await getDatabasesPath(), 'account.db'),
+        );
+        database.close();
+      },
+    );
+  }
+}
