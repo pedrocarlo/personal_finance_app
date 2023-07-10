@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/date_symbol_data_local.dart';
+import 'package:intl/intl.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:personal_finance_app/card_utils.dart';
 import 'package:personal_finance_app/panel_controller.dart';
@@ -37,14 +38,66 @@ class _PanelsState extends State<Panels> {
       itemCount: widget.steps.length,
       itemBuilder: (context, index) {
         return Container(
-          decoration: BoxDecoration(boxShadow: [
-            BoxShadow(
-                color: Colors.deepPurple.shade600,
-                offset: const Offset(-10, -1))
-          ]),
-          child: const Card(
-            child: Center(
-              child: Text("TEST"),
+          decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(10.0),
+              boxShadow: [
+                BoxShadow(
+                    color: Colors.deepPurple.shade600.withOpacity(0.6),
+                    offset: const Offset(-6, 14),
+                    spreadRadius: -6.0)
+              ]),
+          child: GestureDetector(
+            onTap: () => showBarModalBottomSheet(
+                backgroundColor: const Color(0xff121212),
+                expand: true,
+                context: context,
+                builder: (builder) {
+                  final trObs = panelController.steps[index].tr;
+                  // ever(trObs, (callback) => print('$callback has changed'));
+                  return TransactionForm(trObs: trObs);
+                }),
+            child: Card(
+              // TODO SEE A WAY TO HAVE THIS SINGLE CHILD SCROLLVIEW VANISH AND HAVE NO TEXT OVERFLOW
+              child: Padding(
+                padding: const EdgeInsets.all(11.0),
+                child: Column(children: [
+                  Expanded(
+                    child: Align(
+                        alignment: Alignment.topCenter,
+                        child: Obx(() => Text(
+                              widget.steps[index].tr.value.name,
+                              style: const TextStyle(
+                                  fontFamily: "Futura",
+                                  fontWeight: FontWeight.w400,
+                                  fontSize: 17),
+                            ))),
+                  ),
+                  Expanded(
+                    child: Align(
+                        alignment: Alignment.center,
+                        child: Obx(() => Text(
+                              widget.steps[index].tr.value.value,
+                              style: const TextStyle(
+                                  fontFamily: "Futura",
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 20),
+                            ))),
+                  ),
+                  Expanded(
+                    child: Align(
+                      alignment: Alignment.bottomCenter,
+                      child: Obx(() => Text(
+                            DateFormat('dd/MM/yyyy')
+                                .format(widget.steps[index].tr.value.date),
+                            style: const TextStyle(
+                                fontFamily: "Futura",
+                                fontWeight: FontWeight.w400,
+                                fontSize: 16),
+                          )),
+                    ),
+                  )
+                ]),
+              ),
             ),
           ),
         );
