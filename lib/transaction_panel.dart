@@ -5,6 +5,7 @@ import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:personal_finance_app/card_utils.dart';
 import 'package:personal_finance_app/panel_controller.dart';
 import 'package:personal_finance_app/transaction_form.dart';
+import 'package:collection_ext/ranges.dart';
 
 class Panel {
   Panel(this.tr, [this.isExpanded = false]);
@@ -28,30 +29,32 @@ class _PanelsState extends State<Panels> {
   Widget _renderSteps() {
     final panelController = Get.put(PanelController());
     panelController.steps = widget.steps;
-    // return Text("");
-    return ListView.builder(
-        prototypeItem: ElevatedButton(
-            child: const Text(''),
-            onPressed: () => showBarModalBottomSheet(
-                backgroundColor: Colors.black45,
-                context: context,
-                builder: (builder) {
-                  return Container();
-                })),
-        itemCount: widget.steps.length,
-        itemBuilder: (context, index) {
-          return Obx(() => ElevatedButton(
-              // TODO if needed use the library for modal bottom sheet
-              onPressed: () => showBarModalBottomSheet(
-                  backgroundColor: const Color(0xff121212),
-                  expand: true,
-                  context: context,
-                  builder: (builder) {
-                    final trObs = panelController.steps[index].tr;
-                    // ever(trObs, (callback) => print('$callback has changed'));
-                    return TransactionForm(trObs: trObs);
-                  }),
-              child: Text(panelController.steps[index].tr.value.toString())));
-        });
+
+    return GridView.builder(
+      padding: const EdgeInsets.symmetric(horizontal: 7.0),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 2, mainAxisSpacing: 20.0, crossAxisSpacing: 15.0),
+      itemCount: widget.steps.length,
+      itemBuilder: (context, index) {
+        return Container(
+          decoration: BoxDecoration(boxShadow: [
+            BoxShadow(
+                color: Colors.deepPurple.shade600,
+                offset: const Offset(-10, -1))
+          ]),
+          child: const Card(
+            child: Center(
+              child: Text("TEST"),
+            ),
+          ),
+        );
+      },
+    );
   }
 }
+
+// GridView.builder(
+//       scrollDirection: Axis.horizontal,
+//       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 2),
+      
+//     );

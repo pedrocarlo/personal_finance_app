@@ -153,6 +153,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.17.1"
+  collection_ext:
+    dependency: "direct main"
+    description:
+      name: collection_ext
+      sha256: bf6b6d9417ea8d4624b5fba7788ebbf0030db23a9681add600dd92089ff118c8
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.0.0"
   convert:
     dependency: transitive
     description:
@@ -797,6 +805,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.0.1"
+  tuple:
+    dependency: transitive
+    description:
+      name: tuple
+      sha256: a97ce2013f240b2f3807bcbaf218765b6f301c3eff91092bcfa23a039e7dd151
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.0.2"
   typed_data:
     dependency: transitive
     description:
