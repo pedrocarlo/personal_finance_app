@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:intl/date_symbol_data_local.dart';
 import 'package:intl/intl.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:path/path.dart';
@@ -8,7 +7,6 @@ import 'package:personal_finance_app/card_utils.dart';
 import 'package:personal_finance_app/model/model.dart';
 import 'package:personal_finance_app/panel_controller.dart';
 import 'package:personal_finance_app/transaction_form.dart';
-import 'package:collection_ext/ranges.dart';
 import 'package:sqflite/sqflite.dart' hide Transaction;
 
 class Panel {
@@ -29,7 +27,7 @@ class _PanelsState extends State<Panels> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Test"),
+        title: const Text("Pedro Seu Extrato"),
       ),
       bottomNavigationBar: BottomNavigationBar(items: const [
         BottomNavigationBarItem(icon: Icon(Icons.home), label: "Home"),
@@ -37,7 +35,7 @@ class _PanelsState extends State<Panels> {
       ]),
       body: _renderSteps(),
       floatingActionButton: Padding(
-        padding: EdgeInsets.only(left: 30),
+        padding: const EdgeInsets.only(left: 26),
         child: Align(
             alignment: Alignment.bottomCenter, child: _floatingActionButton()),
       ),

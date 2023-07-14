@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:get/get.dart';
+import 'package:google_mlkit_entity_extraction/google_mlkit_entity_extraction.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:intl/intl.dart';
 import 'package:personal_finance_app/model/model.dart';
@@ -104,6 +105,42 @@ Future<List<Transaction>> getPDFtext(String path) async {
     //Dispose the document.
     document.dispose();
     trs = await itauCard(text);
+    // TODO SEE HOW TO IMPLEMENT LIKE AN AUTOCOMPLETE FOR
+
+    // final modelManager = EntityExtractorModelManager();
+    // const language = EntityExtractorLanguage.portuguese;
+
+    // // String model = "pt_br";
+    // final bool response = await modelManager.isModelDownloaded(language.name);
+    // if (!response) {
+    //   // TODO try catch error here to catch error when cannot download
+    //   final bool response = await modelManager.downloadModel(language.name);
+    //   print("HAS downloaded? $response");
+    // }
+    // final entityExtractor = EntityExtractor(language: language);
+    // List<EntityAnnotation> annotations = await entityExtractor.annotateText(tr.value);
+    // List<List<String>> mlText = [];
+    // for (var tr in trs) {
+    //   List<String> temp = [];
+    //   annotations = await entityExtractor.annotateText(tr.value);
+    //   print("TR.NAME");
+    //   print(tr.name);
+
+    //   for (final annotation in annotations) {
+    //     temp.add(annotation.text);
+    //     // for (final entity in annotation.entities) {
+    //     //   entity.type;
+    //     //   entity.rawValue;
+    //     // }
+    //   }
+    //   mlText.add(temp);
+    // }
+    // for (var e in mlText) {
+    //   print("VALUE NEXT");
+    //   print(e);
+    // }
+
+    // entityExtractor.close();
     // for (final tr in trs) {
     //   ret.write('${tr.toString()}\n');
     // }
