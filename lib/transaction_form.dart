@@ -49,21 +49,7 @@ class _TransactionFormState extends State<TransactionForm> {
               horizontal: 10.0, vertical: 8),
           child: Column(
             children: [
-              ListTile(
-                contentPadding:
-                    const EdgeInsetsDirectional.symmetric(horizontal: 10.0),
-                // TODO have it that clicking anywhere on the listtile can edit the text field
-                trailing: const Icon(Icons.draw_rounded),
-                title: TextFormField(
-                  decoration: const InputDecoration(border: InputBorder.none),
-                  controller: nameController,
-                  style: const TextStyle(fontSize: 32.0),
-                ),
-              ),
-              // Container(
-              //   height: 15,
-              //   alignment: Alignment.center,
-              // ),
+              nameTile(nameController),
               Expanded(
                 child: Container(
                   padding: const EdgeInsets.symmetric(vertical: 10.0),
@@ -85,6 +71,8 @@ class _TransactionFormState extends State<TransactionForm> {
                         child: valueField(valueController),
                       ),
                       dateTile(context, initialDate),
+                      const Text(
+                          "Change Categoria probably to bottom sheet that can select icons"),
                       categoriaTile(context),
                       const Spacer(),
                       Align(
@@ -104,25 +92,34 @@ class _TransactionFormState extends State<TransactionForm> {
 
 // Write functions here
 
-InputDecoration description(String text) {
+InputDecoration description(String text, double fontSize) {
   return InputDecoration(
       label: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 5),
         child: Text(
           text,
-          style: const TextStyle(fontSize: 20.0, fontWeight: FontWeight.bold),
+          style: TextStyle(fontSize: fontSize, fontWeight: FontWeight.bold),
         ),
       ),
       border: InputBorder.none,
       contentPadding: const EdgeInsetsDirectional.symmetric(horizontal: 25));
-  // return Padding(
-  //     padding: const EdgeInsets.symmetric(horizontal: 10.0),
-  //     child: Align(alignment: Alignment.centerLeft, child: Text(text)));
+}
+
+ListTile nameTile(TextEditingController nameController) {
+  return ListTile(
+    contentPadding: const EdgeInsetsDirectional.symmetric(horizontal: 10.0),
+    trailing: const Icon(Icons.draw_rounded),
+    title: TextFormField(
+      decoration: const InputDecoration(border: InputBorder.none),
+      controller: nameController,
+      style: const TextStyle(fontSize: 32.0),
+    ),
+  );
 }
 
 TextFormField valueField(TextEditingController valueController) {
   return TextFormField(
-    decoration: description("Valor"),
+    decoration: description("Valor", 25.0),
     inputFormatters: [
       CurrencyTextInputFormatter(decimalDigits: 2, locale: "pt-BR", name: "")
     ],
@@ -130,7 +127,7 @@ TextFormField valueField(TextEditingController valueController) {
     textAlign: TextAlign.right,
     controller: valueController,
     style: const TextStyle(
-        inherit: true, fontSize: 30, fontWeight: FontWeight.bold),
+        inherit: true, fontSize: 46, fontWeight: FontWeight.bold),
   );
 }
 
@@ -138,8 +135,12 @@ ListTile categoriaTile(BuildContext context) {
   return ListTile(
     contentPadding: const EdgeInsetsDirectional.symmetric(horizontal: 10.0),
     // TODO have it that clicking anywhere on the listtile can edit the text field
-    leading: const Icon(Icons.draw_rounded),
+    leading: const Icon(
+      Icons.draw_rounded,
+      size: 25.0,
+    ),
     title: TextFormField(
+      style: const TextStyle(fontSize: 25.0, fontWeight: FontWeight.bold),
       decoration: const InputDecoration(border: InputBorder.none),
       // controller: nameController,
       initialValue: "TESTE CATEGORIA",
@@ -150,8 +151,14 @@ ListTile categoriaTile(BuildContext context) {
 ListTile dateTile(BuildContext context, Rx<String> initialDate) {
   return ListTile(
       contentPadding: const EdgeInsetsDirectional.symmetric(horizontal: 10.0),
-      leading: const Icon(Icons.calendar_month_rounded),
-      title: Obx(() => Text(initialDate.value)),
+      leading: const Icon(
+        Icons.calendar_month_rounded,
+        size: 25.0,
+      ),
+      title: Obx(() => Text(
+            initialDate.value,
+            style: const TextStyle(fontSize: 25.0, fontWeight: FontWeight.bold),
+          )),
       onTap: () async {
         DateTime? pickedDate = await showDatePicker(
             context: context,
