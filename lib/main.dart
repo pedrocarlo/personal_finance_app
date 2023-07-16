@@ -1,6 +1,5 @@
 import 'dart:io';
 import 'package:get/get.dart';
-import 'package:google_mlkit_entity_extraction/google_mlkit_entity_extraction.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:intl/intl.dart';
 import 'package:personal_finance_app/model/model.dart';
@@ -69,18 +68,42 @@ class _HomeScreenState extends State<HomeScreen> {
               _loading = true;
             });
             // Call the function to parse text from pdf
-            getPDFtext(file.path).then((trList) {
-              setState(() {
-                _trList = trList;
-                _loading = false;
+            TextEditingController controller = TextEditingController(text: "");
+            PdfDocument? document;
+            RxBool finish = false.obs;
+            RxBool cont = true.obs;
+            const snackBar = SnackBar(
+              content: Text('Senha Invalida'), // TODO ver gramatica
+            );
+            while (!finish.value && cont.value) {
+              document = await getPdf(file.path, controller);
+              // TODO change code to see where to put these functions because of context
+              if (document == null) {
+                await _displayTextInputDialog(
+                    context, controller, cont, finish);
+              } else {
+                finish.value = true;
+              }
+              if (!finish.value && cont.value) {
+                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                  content: Text('Senha Inválida'),
+                ));
+              }
+            }
+            if (document != null) {
+              getPdftext(document).then((trList) {
+                setState(() {
+                  _trList = trList;
+                  _loading = false;
+                });
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => Panels(steps: tr2Step(trList)),
+                  ),
+                );
               });
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => Panels(steps: tr2Step(trList)),
-                ),
-              );
-            });
+            }
           }
         },
       ),
@@ -89,14 +112,13 @@ class _HomeScreenState extends State<HomeScreen> {
 }
 
 // Gets all the text from a PDF document, returns it in string.
-Future<List<Transaction>> getPDFtext(String path) async {
+Future<List<Transaction>> getPdftext(PdfDocument document) async {
   // StringBuffer ret = StringBuffer();
   List<Transaction> trs = [];
   try {
     //Load an existing PDF document.
     // TODO CHANGE how I access pdf with password and change the way to get password
-    final PdfDocument document = PdfDocument(
-        inputBytes: File(path).readAsBytesSync(), password: "12936");
+
     PdfSecurity security = document.security;
     security.ownerPassword = '';
     String text = PdfTextExtractor(document)
@@ -106,45 +128,6 @@ Future<List<Transaction>> getPDFtext(String path) async {
     document.dispose();
     trs = await itauCard(text);
     // TODO SEE HOW TO IMPLEMENT LIKE AN AUTOCOMPLETE FOR
-
-    // final modelManager = EntityExtractorModelManager();
-    // const language = EntityExtractorLanguage.portuguese;
-
-    // // String model = "pt_br";
-    // final bool response = await modelManager.isModelDownloaded(language.name);
-    // if (!response) {
-    //   // TODO try catch error here to catch error when cannot download
-    //   final bool response = await modelManager.downloadModel(language.name);
-    //   print("HAS downloaded? $response");
-    // }
-    // final entityExtractor = EntityExtractor(language: language);
-    // List<EntityAnnotation> annotations = await entityExtractor.annotateText(tr.value);
-    // List<List<String>> mlText = [];
-    // for (var tr in trs) {
-    //   List<String> temp = [];
-    //   annotations = await entityExtractor.annotateText(tr.value);
-    //   print("TR.NAME");
-    //   print(tr.name);
-
-    //   for (final annotation in annotations) {
-    //     temp.add(annotation.text);
-    //     // for (final entity in annotation.entities) {
-    //     //   entity.type;
-    //     //   entity.rawValue;
-    //     // }
-    //   }
-    //   mlText.add(temp);
-    // }
-    // for (var e in mlText) {
-    //   print("VALUE NEXT");
-    //   print(e);
-    // }
-
-    // entityExtractor.close();
-    // for (final tr in trs) {
-    //   ret.write('${tr.toString()}\n');
-    // }
-    // List<RegExpMatch> matches = await portoCard(text);
   } on PlatformException {
     print("Failed to get PDF text.");
   }
@@ -155,15 +138,46 @@ List<Panel> tr2Step(List<Transaction> trs) {
   return trs.map<Panel>((Transaction tr) => Panel(tr.obs)).toList();
 }
 
-// List<Widget> loadingWidgets(bool loading, List<Transaction> trList) {
-//   if (loading) {
-//     return [const Center(child: CircularProgressIndicator())];
-//   }
-//   List<Panel> panelLst = tr2Step(trList);
-//   return [
-//     Expanded(
-//         // Check if returning text page by page or the whole document as one string
-//         child: Panels(steps: panelLst)),
-//     // TODO render this button only with the panels after loading
-//   ];
-// }
+Future<PdfDocument?> getPdf(
+    String path, TextEditingController controller) async {
+  PdfDocument document;
+  try {
+    document = PdfDocument(
+        inputBytes: File(path).readAsBytesSync(), password: controller.text);
+  } catch (e) {
+    return null;
+  }
+  return document;
+}
+
+Future<void> _displayTextInputDialog(BuildContext context,
+    TextEditingController controller, RxBool cont, RxBool finish) async {
+  return showDialog(
+    context: context,
+    builder: (context) {
+      return AlertDialog(
+        title: const Text('Senha do PDF'),
+        content: TextField(
+          controller: controller,
+          decoration: const InputDecoration(hintText: "Senha"),
+        ),
+        actions: <Widget>[
+          TextButton(
+            child: const Text('CANCELAR'),
+            onPressed: () {
+              Navigator.pop(context);
+              cont.value = false;
+            },
+          ),
+          TextButton(
+            child: const Text('OK'),
+            onPressed: () {
+              // print(_textFieldController.text);
+              Navigator.pop(context);
+            },
+          ),
+        ],
+      );
+    },
+  );
+}
