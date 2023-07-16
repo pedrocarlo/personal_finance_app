@@ -40,6 +40,8 @@ class TableCartao extends SqfEntityTableBase {
       SqfEntityFieldBase('parcela', DbType.text),
       SqfEntityFieldBase('fatura', DbType.integer),
       SqfEntityFieldBase('card', DbType.text),
+      SqfEntityFieldBase('emission', DbType.datetime,
+          minValue: DateTime.parse('1900-01-01')),
     ];
     super.init();
   }
@@ -84,16 +86,17 @@ class Cartao extends TableBase {
       this.value,
       this.parcela,
       this.fatura,
-      this.card}) {
+      this.card,
+      this.emission}) {
     _setDefaultValues();
     softDeleteActivated = false;
   }
-  Cartao.withFields(
-      this.date, this.name, this.value, this.parcela, this.fatura, this.card) {
+  Cartao.withFields(this.date, this.name, this.value, this.parcela, this.fatura,
+      this.card, this.emission) {
     _setDefaultValues();
   }
   Cartao.withId(this.id, this.date, this.name, this.value, this.parcela,
-      this.fatura, this.card) {
+      this.fatura, this.card, this.emission) {
     _setDefaultValues();
   }
   // fromMap v2.0
@@ -123,6 +126,12 @@ class Cartao extends TableBase {
     if (o['card'] != null) {
       card = o['card'].toString();
     }
+    if (o['emission'] != null) {
+      emission = int.tryParse(o['emission'].toString()) != null
+          ? DateTime.fromMillisecondsSinceEpoch(
+              int.tryParse(o['emission'].toString())!)
+          : DateTime.tryParse(o['emission'].toString());
+    }
   }
   // FIELDS (Cartao)
   int? id;
@@ -132,6 +141,7 @@ class Cartao extends TableBase {
   String? parcela;
   int? fatura;
   String? card;
+  DateTime? emission;
 
   // end FIELDS (Cartao)
 
@@ -172,6 +182,15 @@ class Cartao extends TableBase {
     if (card != null || !forView) {
       map['card'] = card;
     }
+    if (emission != null) {
+      map['emission'] = forJson
+          ? emission!.toString()
+          : forQuery
+              ? emission!.millisecondsSinceEpoch
+              : emission;
+    } else if (emission != null || !forView) {
+      map['emission'] = null;
+    }
 
     return map;
   }
@@ -207,6 +226,15 @@ class Cartao extends TableBase {
     if (card != null || !forView) {
       map['card'] = card;
     }
+    if (emission != null) {
+      map['emission'] = forJson
+          ? emission!.toString()
+          : forQuery
+              ? emission!.millisecondsSinceEpoch
+              : emission;
+    } else if (emission != null || !forView) {
+      map['emission'] = null;
+    }
 
     return map;
   }
@@ -231,7 +259,8 @@ class Cartao extends TableBase {
       value,
       parcela,
       fatura,
-      card
+      card,
+      emission != null ? emission!.millisecondsSinceEpoch : null
     ];
   }
 
@@ -244,7 +273,8 @@ class Cartao extends TableBase {
       value,
       parcela,
       fatura,
-      card
+      card,
+      emission != null ? emission!.millisecondsSinceEpoch : null
     ];
   }
 
@@ -393,7 +423,7 @@ class Cartao extends TableBase {
   Future<int?> upsert({bool ignoreBatch = true}) async {
     try {
       final result = await _mnCartao.rawInsert(
-          'INSERT OR REPLACE INTO cartaoes (id, date, name, value, parcela, fatura, card)  VALUES (?,?,?,?,?,?,?)',
+          'INSERT OR REPLACE INTO cartaoes (id, date, name, value, parcela, fatura, card, emission)  VALUES (?,?,?,?,?,?,?,?)',
           [
             id,
             date != null ? date!.millisecondsSinceEpoch : null,
@@ -401,7 +431,8 @@ class Cartao extends TableBase {
             value,
             parcela,
             fatura,
-            card
+            card,
+            emission != null ? emission!.millisecondsSinceEpoch : null
           ],
           ignoreBatch);
       if (result! > 0) {
@@ -428,7 +459,7 @@ class Cartao extends TableBase {
   Future<BoolCommitResult> upsertAll(List<Cartao> cartaos,
       {bool? exclusive, bool? noResult, bool? continueOnError}) async {
     final results = await _mnCartao.rawInsertAll(
-        'INSERT OR REPLACE INTO cartaoes (id, date, name, value, parcela, fatura, card)  VALUES (?,?,?,?,?,?,?)',
+        'INSERT OR REPLACE INTO cartaoes (id, date, name, value, parcela, fatura, card, emission)  VALUES (?,?,?,?,?,?,?,?)',
         cartaos,
         exclusive: exclusive,
         noResult: noResult,
@@ -716,6 +747,11 @@ class CartaoFilterBuilder extends ConjunctionBase {
     return _card = _setField(_card, 'card', DbType.text);
   }
 
+  CartaoField? _emission;
+  CartaoField get emission {
+    return _emission = _setField(_emission, 'emission', DbType.datetime);
+  }
+
   /// Deletes List<Cartao> bulk by query
   ///
   /// <returns>BoolResult res.success= true (Deleted), false (Could not be deleted)
@@ -972,6 +1008,12 @@ class CartaoFields {
   static TableField? _fCard;
   static TableField get card {
     return _fCard = _fCard ?? SqlSyntax.setField(_fCard, 'card', DbType.text);
+  }
+
+  static TableField? _fEmission;
+  static TableField get emission {
+    return _fEmission = _fEmission ??
+        SqlSyntax.setField(_fEmission, 'emission', DbType.datetime);
   }
 }
 // endregion CartaoFields

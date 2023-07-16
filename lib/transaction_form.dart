@@ -11,7 +11,13 @@ import 'package:currency_text_input_formatter/currency_text_input_formatter.dart
 
 class TransactionForm extends StatefulWidget {
   final Rx<Transaction> trObs;
-  const TransactionForm({super.key, required this.trObs});
+  final String originalName;
+  final RxString panelName;
+  const TransactionForm(
+      {super.key,
+      required this.trObs,
+      required this.originalName,
+      required this.panelName});
 
   @override
   State<TransactionForm> createState() => _TransactionFormState();
@@ -20,21 +26,27 @@ class TransactionForm extends StatefulWidget {
 class _TransactionFormState extends State<TransactionForm> {
   final _formKey = GlobalKey<FormState>();
   final panelController = Get.put(PanelController());
-  final controllers = [];
+  final controllers = <TextEditingController>[];
   final String initialDate = '';
 
   @override
   void initState() {
+    var hMap = panelController.name2ProductMap;
     controllers.addAll(panelController.createTextControllers());
     final nameController = controllers[0];
     final valueController = controllers[1];
-    nameController.text = widget.trObs.value.name;
+
+    nameController.text = hMap.containsKey(widget.originalName)
+        ? hMap[widget.originalName] ?? ""
+        : widget.trObs.value.name;
     valueController.text = widget.trObs.value.value;
     super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
+    panelController.testHashMap();
+    print(panelController.name2ProductMap);
     Rx<String> initialDate =
         DateFormat('dd/MM/yyyy').format(widget.trObs.value.date).obs;
     TextEditingController nameController = controllers[0];
@@ -186,14 +198,19 @@ IconButton submitButton(
         String strDate = initialDate.value;
         String day = strDate.substring(0, 2);
         String month = strDate.substring(3, 5);
-        String year = "2023";
+        String year = widget.trObs.value.emission.year.toString();
         DateTime date = DateTime.parse('$year-$month-$day').toLocal();
+        PanelController.to.name2ProductMap.update(
+            widget.originalName, (value) => nameController.text,
+            ifAbsent: () => nameController.text);
+        widget.panelName.value = nameController.text;
         Transaction tr = Transaction(
             date,
             nameController.text,
             valueController.text,
             widget.trObs.value.fatura,
-            widget.trObs.value.parcela);
+            widget.trObs.value.parcela,
+            widget.trObs.value.emission);
         widget.trObs.value = tr;
         // print(widget.step.tr);
       }

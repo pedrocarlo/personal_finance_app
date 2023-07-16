@@ -7,7 +7,8 @@ import 'package:equatable/equatable.dart';
 
 import 'package:path_provider/path_provider.dart';
 
-// TODO get o numero da fatura para deixar as transacoes serem unicas
+// TODO melhor forma de ver as transacoes, pela data de emissao ou vencimento para
+// TODO saber o quanto gasto num mes
 
 /// Print Long String
 void printLongString(String text) {
@@ -17,15 +18,15 @@ void printLongString(String text) {
       .forEach((RegExpMatch match) => print(match.group(0)));
 }
 
-// Eventually make this become a model in sqluentify
 class Transaction extends Equatable implements Comparable<Transaction> {
   final DateTime date;
   final String name;
   final String value;
   final String parcela;
   final int fatura;
-  const Transaction(this.date, this.name, this.value, this.fatura,
-      [this.parcela = ""]);
+  final DateTime emission;
+  const Transaction(this.date, this.name, this.value, this.fatura, this.parcela,
+      this.emission);
 
   @override
   String toString() {
@@ -58,7 +59,7 @@ class Transaction extends Equatable implements Comparable<Transaction> {
   List<Object> get props => [name, value, date];
 }
 
-// TODO pegar data da fatura para saber o mes que o app deve adicionar as transacoes
+// TODO consertar
 Future<List<RegExpMatch>> portoCard(String pdfText) async {
   String regex =
       r'TOTAL DE GASTOS.*[\r\n]+([\s\S][^\r\n]+[\s\S]*)(?=\nDESPESAS NO EXTERIOR)|TOTAL DE GASTOS.*[\r\n]+([^\r\n]+[\s\S]*)';
@@ -118,7 +119,7 @@ Future<List<RegExpMatch>> portoCard(String pdfText) async {
     }
     String? money = moneyExp.firstMatch(t)?.group(0);
 
-    Transaction tr = Transaction(date, name!, money!, 0);
+    // Transaction tr = Transaction(date, name!, money!, 0);
     // print(date);
     // print(name);
     // print(money);
@@ -153,6 +154,14 @@ Future<List<Transaction>> itauCard(String pdfText) async {
   String nameRegex = r'(?<=^\d\d\/\d\d)\D*(?=\d)';
   String parcelaRegex =
       r'(?!^\d\d\/\d\d)\d\d\/\d\d'; // Pegar se é parcelado a compra
+
+  String emissionRegex = r"(?<=Emissão:).*(?=Previsão)";
+  String? emission = RegExp(emissionRegex).firstMatch(pdfText)!.group(0)!;
+  String day = emission.substring(0, 2);
+  String month = emission.substring(3, 5);
+  String year = emission.substring(6, 10);
+  DateTime emissionDate = DateTime.parse('$year-$month-$day').toLocal();
+
   Iterable<RegExpMatch>? listPay;
   if (payments != null) {
     listPay = listPayExp.allMatches(payments);
@@ -168,8 +177,8 @@ Future<List<Transaction>> itauCard(String pdfText) async {
       String? money = RegExp(moneyRegex).firstMatch(pay[0]!)!.group(1);
       String? name = RegExp(nameRegex).firstMatch(pay[0]!)!.group(0);
       String parcela = RegExp(parcelaRegex).firstMatch(pay[0]!)?.group(0) ?? "";
-      Transaction tr =
-          Transaction(date, name!, money!, faturaNum as int, parcela);
+      Transaction tr = Transaction(
+          date, name!, money!, faturaNum as int, parcela, emissionDate);
       if (parcela != "") {
         final lst = trsParcelas.putIfAbsent(tr, () => []);
         lst.add(tr);

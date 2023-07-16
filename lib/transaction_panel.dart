@@ -37,7 +37,8 @@ class _PanelsState extends State<Panels> {
       floatingActionButton: Padding(
         padding: const EdgeInsets.only(left: 26),
         child: Align(
-            alignment: Alignment.bottomCenter, child: _floatingActionButton()),
+            alignment: Alignment.bottomCenter,
+            child: _floatingActionButton(widget)),
       ),
     );
   }
@@ -45,6 +46,9 @@ class _PanelsState extends State<Panels> {
   Widget _renderSteps() {
     final panelController = Get.put(PanelController());
     panelController.steps = widget.steps;
+    for (var e in widget.steps) {
+      panelController.addName(e.tr.value.name);
+    }
 
     return GridView.builder(
       shrinkWrap: true,
@@ -53,6 +57,20 @@ class _PanelsState extends State<Panels> {
           crossAxisCount: 2, mainAxisSpacing: 20.0, crossAxisSpacing: 15.0),
       itemCount: widget.steps.length,
       itemBuilder: (context, index) {
+        var hMap = panelController.name2ProductMap;
+        var originalName = panelController.nameLst[index];
+        final trObs = panelController.steps[index].tr;
+
+        RxString name;
+        if (hMap.containsKey(originalName)) {
+          String temp = hMap[originalName] ?? '';
+          name = temp.obs;
+        } else {
+          name = trObs.value.name.obs;
+        }
+        print(name.value);
+        panelController.addPanelName(name);
+
         return Container(
           decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(10.0),
@@ -69,7 +87,11 @@ class _PanelsState extends State<Panels> {
                 builder: (builder) {
                   final trObs = panelController.steps[index].tr;
                   // ever(trObs, (callback) => print('$callback has changed'));
-                  return TransactionForm(trObs: trObs);
+                  return TransactionForm(
+                    trObs: trObs,
+                    originalName: panelController.nameLst[index],
+                    panelName: panelController.panelNameLst[index],
+                  );
                 }),
             child: Card(
               child: Padding(
@@ -79,7 +101,7 @@ class _PanelsState extends State<Panels> {
                     child: Align(
                         alignment: Alignment.topCenter,
                         child: Obx(() => Text(
-                              widget.steps[index].tr.value.name,
+                              panelController.panelNameLst[index].value,
                               style: const TextStyle(
                                   fontFamily: "Futura",
                                   fontWeight: FontWeight.w400,
@@ -118,50 +140,53 @@ class _PanelsState extends State<Panels> {
       },
     );
   }
+}
 
-  Widget _floatingActionButton() {
-    return FloatingActionButton.extended(
-      label: const Text("Submit"),
-      onPressed: () async {
-        var numberFormat = NumberFormat();
+Widget _floatingActionButton(Panels widget) {
+  return FloatingActionButton.extended(
+    label: const Text("Submit"),
+    onPressed: () async {
+      var numberFormat = NumberFormat();
 
-        final List<Cartao> placeholder = [];
-        double value;
-        for (var e in widget.steps) {
-          try {
-            value = numberFormat.parse(e.tr.value.value) as double;
-          } catch (e) {
-            value = 0.0;
-          }
-          placeholder.add(Cartao(
-              date: e.tr.value.date,
-              name: e.tr.value.name,
-              value: value,
-              parcela: e.tr.value.parcela,
-              fatura: e.tr.value.fatura,
-              card: "ITAU"));
-          // TODO CHANGE HERE THE CARD NAME TO BE DYNAMIC
+      final List<Cartao> placeholder = [];
+      double value;
+      for (var e in widget.steps) {
+        try {
+          value = numberFormat.parse(e.tr.value.value) as double;
+        } catch (e) {
+          value = 0.0;
         }
-        final results = await Cartao.saveAll(placeholder);
+        placeholder.add(Cartao(
+            date: e.tr.value.date,
+            name: e.tr.value.name,
+            value: value,
+            parcela: e.tr.value.parcela,
+            fatura: e.tr.value.fatura,
+            card: "ITAU",
+            emission: e.tr.value.emission));
+        // TODO CHANGE HERE THE CARD NAME TO BE DYNAMIC
+      }
+      final results = await Cartao.saveAll(placeholder);
 
-        // TODO remove this after testing
-        print(widget.steps[0].tr.value.value);
-        final productList = await Cartao().select().toList();
+      // TODO remove this after testing
+      print(widget.steps[0].tr.value.value);
+      final productList = await Cartao().select().toList();
 
-        for (int i = 0; i < productList.length; i++) {
-          print(productList[i].toMap());
-        }
+      for (int i = 0; i < productList.length; i++) {
+        print(productList[i].toMap());
+      }
 
-        // LEAVE DATABASE OPEN FOR DEBUGGING
-        WidgetsFlutterBinding.ensureInitialized();
-        final database = await openDatabase(
-          // Set the path to the database. Note: Using the `join` function from the
-          // `path` package is best practice to ensure the path is correctly
-          // constructed for each platform.
-          join(await getDatabasesPath(), 'account.db'),
-        );
-        database.close();
-      },
-    );
-  }
+      // LEAVE DATABASE OPEN FOR DEBUGGING
+      WidgetsFlutterBinding.ensureInitialized();
+      final database = await openDatabase(
+        // Set the path to the database. Note: Using the `join` function from the
+        // `path` package is best practice to ensure the path is correctly
+        // constructed for each platform.
+        join(await getDatabasesPath(), 'account.db'),
+      );
+      database.close();
+      // TODO add the names here to hashmap
+      PanelController.to.serializeMap();
+    },
+  );
 }

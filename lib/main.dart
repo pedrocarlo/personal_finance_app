@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:intl/intl.dart';
 import 'package:personal_finance_app/model/model.dart';
+import 'package:personal_finance_app/panel_controller.dart';
 import 'package:sqflite/sqflite.dart' hide Transaction;
 import 'dart:ui' as ui;
 
@@ -18,6 +19,7 @@ import 'package:path/path.dart';
 
 void main() {
   initializeDateFormatting('pt_BR');
+
   runApp(const MyApp());
 }
 
@@ -26,6 +28,10 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final panelController = Get.put(PanelController());
+
+    PanelController.to.decodeMap();
+
     return MaterialApp(
         theme: ThemeData(useMaterial3: true), home: const HomeScreen());
   }
@@ -42,6 +48,7 @@ class _HomeScreenState extends State<HomeScreen> {
   String text = "";
   List<Transaction> _trList = [];
   bool _loading = false;
+  // final PanelController _controller = PanelController.to;
 
   @override
   Widget build(BuildContext context) {
