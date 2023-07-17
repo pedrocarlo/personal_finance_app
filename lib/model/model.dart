@@ -24,6 +24,7 @@ const tableCartaoItau = SqfEntityTable(
       SqfEntityField('card',
           DbType.text), // See if can have a limited value field with options
       SqfEntityField('emission', DbType.datetime),
+      SqfEntityField('category', DbType.text),
       // TODO add ProductName that will display in form
     ]);
 

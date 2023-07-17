@@ -62,13 +62,14 @@ class _PanelsState extends State<Panels> {
         final trObs = panelController.steps[index].tr;
 
         RxString name;
+        print('This is the og name: $originalName');
         if (hMap.containsKey(originalName)) {
           String temp = hMap[originalName] ?? '';
+          print(temp);
           name = temp.obs;
         } else {
           name = trObs.value.name.obs;
         }
-        print(name.value);
         panelController.addPanelName(name);
 
         return Container(

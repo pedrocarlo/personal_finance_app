@@ -45,7 +45,7 @@ class _TransactionFormState extends State<TransactionForm> {
 
   @override
   Widget build(BuildContext context) {
-    panelController.testHashMap();
+    // panelController.testHashMap();
     print(panelController.name2ProductMap);
     Rx<String> initialDate =
         DateFormat('dd/MM/yyyy').format(widget.trObs.value.date).obs;

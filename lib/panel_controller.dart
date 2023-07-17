@@ -12,11 +12,27 @@ class PanelController extends GetxController {
   // TODO HAVE DICTIONARY CREATED HERE TO PRESERVE MAPPINGS OF NAMES
   static PanelController get to => Get.find<PanelController>();
 
+  var categoryMap = HashMap<String, List<String>>();
   var name2ProductMap = HashMap<String, String>();
   var nameLst = <String>[];
   var panelNameLst = <RxString>[];
   var steps = <Panel>[];
   var controllerLst = <List<TextEditingController>>[];
+
+  void serializeCategory() async {
+    final Directory directory = await getApplicationDocumentsDirectory();
+    final File file = File('${directory.path}/category.json');
+    await file.writeAsString(jsonEncode(categoryMap));
+  }
+
+  void decodeCategory() async {
+    final Directory directory = await getApplicationDocumentsDirectory();
+    final File file = File('${directory.path}/category.json');
+    if (file.existsSync()) {
+      String jsonMap = await file.readAsString();
+      name2ProductMap = HashMap<String, String>.from(jsonDecode(jsonMap));
+    }
+  }
 
   void addName(String name) {
     nameLst.add(name);
