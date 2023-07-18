@@ -5,7 +5,9 @@ import 'package:flutter/services.dart';
 import 'dart:ui' as ui;
 
 import 'package:personal_finance_app/card_utils.dart';
+import 'package:personal_finance_app/category_page.dart';
 import 'package:personal_finance_app/model/model.dart';
+import 'package:personal_finance_app/category_default.dart';
 import 'package:personal_finance_app/panel_controller.dart';
 import 'package:currency_text_input_formatter/currency_text_input_formatter.dart';
 
@@ -45,6 +47,7 @@ class _TransactionFormState extends State<TransactionForm> {
 
   @override
   Widget build(BuildContext context) {
+    printIcon();
     // panelController.testHashMap();
     print(panelController.name2ProductMap);
     Rx<String> initialDate =
@@ -151,11 +154,18 @@ ListTile categoriaTile(BuildContext context) {
       Icons.draw_rounded,
       size: 25.0,
     ),
-    title: TextFormField(
-      style: const TextStyle(fontSize: 25.0, fontWeight: FontWeight.bold),
-      decoration: const InputDecoration(border: InputBorder.none),
-      // controller: nameController,
-      initialValue: "TESTE CATEGORIA",
+    title: const Text('Escolha a sua Categoria'),
+    // title: TextFormField(
+    //   style: const TextStyle(fontSize: 25.0, fontWeight: FontWeight.bold),
+    //   decoration: const InputDecoration(border: InputBorder.none),
+    //   // controller: nameController,
+    //   initialValue: "TESTE CATEGORIA",
+    // ),
+    onTap: () => Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => CategoryPage(),
+      ),
     ),
   );
 }

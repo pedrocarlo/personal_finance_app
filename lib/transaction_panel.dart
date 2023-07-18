@@ -35,6 +35,7 @@ class _PanelsState extends State<Panels> {
       ]),
       body: _renderSteps(),
       floatingActionButton: Padding(
+        // TODO test the floatingactionbuttonlocation
         padding: const EdgeInsets.only(left: 26),
         child: Align(
             alignment: Alignment.bottomCenter,
@@ -62,7 +63,6 @@ class _PanelsState extends State<Panels> {
         final trObs = panelController.steps[index].tr;
 
         RxString name;
-        print('This is the og name: $originalName');
         if (hMap.containsKey(originalName)) {
           String temp = hMap[originalName] ?? '';
           print(temp);
