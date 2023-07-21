@@ -22,14 +22,16 @@ class _CategoryPageState extends State<CategoryPage> {
       ),
       body: GridView.builder(
         gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 4, mainAxisSpacing: 20.0),
+            crossAxisCount: 4, mainAxisSpacing: 5, crossAxisSpacing: 0),
         itemCount: baseCategories.length,
         itemBuilder: (BuildContext context, int index) {
           var currCategory = baseCategories[index];
           return Column(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              mainAxisSize: MainAxisSize.max,
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
                 Container(
+                    padding: EdgeInsets.zero,
                     decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(15.0),
                         color: const Color.fromARGB(255, 10, 10, 10)),
@@ -39,7 +41,8 @@ class _CategoryPageState extends State<CategoryPage> {
                           icon: currCategory.toIcon(),
                           onPressed: () {},
                         ))),
-                Expanded(
+                Flexible(
+                  fit: FlexFit.tight,
                   child: Text(
                     currCategory.name,
                     textAlign: TextAlign.center,
