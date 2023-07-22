@@ -57,6 +57,7 @@ dependencies:
   google_mlkit_entity_extraction: ^0.9.0
   shared_preferences: ^2.2.0
   iconify_flutter: ^0.0.5
+  fl_chart: ^0.63.0
 
 dev_dependencies:
   flutter_test:

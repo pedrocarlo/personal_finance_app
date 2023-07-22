@@ -36,11 +36,11 @@ class TableCartao extends SqfEntityTableBase {
       SqfEntityFieldBase('date', DbType.datetime,
           minValue: DateTime.parse('1900-01-01')),
       SqfEntityFieldBase('name', DbType.text),
-      SqfEntityFieldBase('value', DbType.real),
+      SqfEntityFieldBase('value', DbType.real, isNotNull: true),
       SqfEntityFieldBase('parcela', DbType.text),
       SqfEntityFieldBase('fatura', DbType.integer),
       SqfEntityFieldBase('card', DbType.text),
-      SqfEntityFieldBase('emission', DbType.datetime,
+      SqfEntityFieldBase('due_date', DbType.datetime,
           minValue: DateTime.parse('1900-01-01')),
       SqfEntityFieldBase('category', DbType.text),
     ];
@@ -88,17 +88,17 @@ class Cartao extends TableBase {
       this.parcela,
       this.fatura,
       this.card,
-      this.emission,
+      this.due_date,
       this.category}) {
     _setDefaultValues();
     softDeleteActivated = false;
   }
   Cartao.withFields(this.date, this.name, this.value, this.parcela, this.fatura,
-      this.card, this.emission, this.category) {
+      this.card, this.due_date, this.category) {
     _setDefaultValues();
   }
   Cartao.withId(this.id, this.date, this.name, this.value, this.parcela,
-      this.fatura, this.card, this.emission, this.category) {
+      this.fatura, this.card, this.due_date, this.category) {
     _setDefaultValues();
   }
   // fromMap v2.0
@@ -128,11 +128,11 @@ class Cartao extends TableBase {
     if (o['card'] != null) {
       card = o['card'].toString();
     }
-    if (o['emission'] != null) {
-      emission = int.tryParse(o['emission'].toString()) != null
+    if (o['due_date'] != null) {
+      due_date = int.tryParse(o['due_date'].toString()) != null
           ? DateTime.fromMillisecondsSinceEpoch(
-              int.tryParse(o['emission'].toString())!)
-          : DateTime.tryParse(o['emission'].toString());
+              int.tryParse(o['due_date'].toString())!)
+          : DateTime.tryParse(o['due_date'].toString());
     }
     if (o['category'] != null) {
       category = o['category'].toString();
@@ -146,7 +146,7 @@ class Cartao extends TableBase {
   String? parcela;
   int? fatura;
   String? card;
-  DateTime? emission;
+  DateTime? due_date;
   String? category;
 
   // end FIELDS (Cartao)
@@ -188,14 +188,14 @@ class Cartao extends TableBase {
     if (card != null || !forView) {
       map['card'] = card;
     }
-    if (emission != null) {
-      map['emission'] = forJson
-          ? emission!.toString()
+    if (due_date != null) {
+      map['due_date'] = forJson
+          ? due_date!.toString()
           : forQuery
-              ? emission!.millisecondsSinceEpoch
-              : emission;
-    } else if (emission != null || !forView) {
-      map['emission'] = null;
+              ? due_date!.millisecondsSinceEpoch
+              : due_date;
+    } else if (due_date != null || !forView) {
+      map['due_date'] = null;
     }
     if (category != null || !forView) {
       map['category'] = category;
@@ -235,14 +235,14 @@ class Cartao extends TableBase {
     if (card != null || !forView) {
       map['card'] = card;
     }
-    if (emission != null) {
-      map['emission'] = forJson
-          ? emission!.toString()
+    if (due_date != null) {
+      map['due_date'] = forJson
+          ? due_date!.toString()
           : forQuery
-              ? emission!.millisecondsSinceEpoch
-              : emission;
-    } else if (emission != null || !forView) {
-      map['emission'] = null;
+              ? due_date!.millisecondsSinceEpoch
+              : due_date;
+    } else if (due_date != null || !forView) {
+      map['due_date'] = null;
     }
     if (category != null || !forView) {
       map['category'] = category;
@@ -272,7 +272,7 @@ class Cartao extends TableBase {
       parcela,
       fatura,
       card,
-      emission != null ? emission!.millisecondsSinceEpoch : null,
+      due_date != null ? due_date!.millisecondsSinceEpoch : null,
       category
     ];
   }
@@ -287,7 +287,7 @@ class Cartao extends TableBase {
       parcela,
       fatura,
       card,
-      emission != null ? emission!.millisecondsSinceEpoch : null,
+      due_date != null ? due_date!.millisecondsSinceEpoch : null,
       category
     ];
   }
@@ -437,7 +437,7 @@ class Cartao extends TableBase {
   Future<int?> upsert({bool ignoreBatch = true}) async {
     try {
       final result = await _mnCartao.rawInsert(
-          'INSERT OR REPLACE INTO cartaoes (id, date, name, value, parcela, fatura, card, emission, category)  VALUES (?,?,?,?,?,?,?,?,?)',
+          'INSERT OR REPLACE INTO cartaoes (id, date, name, value, parcela, fatura, card, due_date, category)  VALUES (?,?,?,?,?,?,?,?,?)',
           [
             id,
             date != null ? date!.millisecondsSinceEpoch : null,
@@ -446,7 +446,7 @@ class Cartao extends TableBase {
             parcela,
             fatura,
             card,
-            emission != null ? emission!.millisecondsSinceEpoch : null,
+            due_date != null ? due_date!.millisecondsSinceEpoch : null,
             category
           ],
           ignoreBatch);
@@ -474,7 +474,7 @@ class Cartao extends TableBase {
   Future<BoolCommitResult> upsertAll(List<Cartao> cartaos,
       {bool? exclusive, bool? noResult, bool? continueOnError}) async {
     final results = await _mnCartao.rawInsertAll(
-        'INSERT OR REPLACE INTO cartaoes (id, date, name, value, parcela, fatura, card, emission, category)  VALUES (?,?,?,?,?,?,?,?,?)',
+        'INSERT OR REPLACE INTO cartaoes (id, date, name, value, parcela, fatura, card, due_date, category)  VALUES (?,?,?,?,?,?,?,?,?)',
         cartaos,
         exclusive: exclusive,
         noResult: noResult,
@@ -762,9 +762,9 @@ class CartaoFilterBuilder extends ConjunctionBase {
     return _card = _setField(_card, 'card', DbType.text);
   }
 
-  CartaoField? _emission;
-  CartaoField get emission {
-    return _emission = _setField(_emission, 'emission', DbType.datetime);
+  CartaoField? _due_date;
+  CartaoField get due_date {
+    return _due_date = _setField(_due_date, 'due_date', DbType.datetime);
   }
 
   CartaoField? _category;
@@ -1030,10 +1030,10 @@ class CartaoFields {
     return _fCard = _fCard ?? SqlSyntax.setField(_fCard, 'card', DbType.text);
   }
 
-  static TableField? _fEmission;
-  static TableField get emission {
-    return _fEmission = _fEmission ??
-        SqlSyntax.setField(_fEmission, 'emission', DbType.datetime);
+  static TableField? _fDue_date;
+  static TableField get due_date {
+    return _fDue_date = _fDue_date ??
+        SqlSyntax.setField(_fDue_date, 'due_date', DbType.datetime);
   }
 
   static TableField? _fCategory;

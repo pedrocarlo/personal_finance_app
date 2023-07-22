@@ -164,7 +164,7 @@ Widget _floatingActionButton(Panels widget) {
             parcela: e.tr.value.parcela,
             fatura: e.tr.value.fatura,
             card: "ITAU",
-            emission: e.tr.value.emission));
+            due_date: e.tr.value.due_date));
         // TODO CHANGE HERE THE CARD NAME TO BE DYNAMIC
       }
       final results = await Cartao.saveAll(placeholder);

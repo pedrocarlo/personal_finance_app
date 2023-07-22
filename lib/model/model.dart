@@ -18,12 +18,12 @@ const tableCartaoItau = SqfEntityTable(
     fields: [
       SqfEntityField('date', DbType.datetime),
       SqfEntityField('name', DbType.text),
-      SqfEntityField('value', DbType.real),
+      SqfEntityField('value', DbType.real, isNotNull: true),
       SqfEntityField('parcela', DbType.text),
       SqfEntityField('fatura', DbType.integer),
       SqfEntityField('card',
           DbType.text), // See if can have a limited value field with options
-      SqfEntityField('emission', DbType.datetime),
+      SqfEntityField('due_date', DbType.datetime),
       SqfEntityField('category', DbType.text),
       // TODO add ProductName that will display in form
     ]);

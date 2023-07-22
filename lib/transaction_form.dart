@@ -208,7 +208,7 @@ IconButton submitButton(
         String strDate = initialDate.value;
         String day = strDate.substring(0, 2);
         String month = strDate.substring(3, 5);
-        String year = widget.trObs.value.emission.year.toString();
+        String year = widget.trObs.value.due_date.year.toString();
         DateTime date = DateTime.parse('$year-$month-$day').toLocal();
         PanelController.to.name2ProductMap.update(
             widget.originalName, (value) => nameController.text,
@@ -220,7 +220,7 @@ IconButton submitButton(
             valueController.text,
             widget.trObs.value.fatura,
             widget.trObs.value.parcela,
-            widget.trObs.value.emission);
+            widget.trObs.value.due_date);
         widget.trObs.value = tr;
         // print(widget.step.tr);
       }

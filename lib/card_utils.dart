@@ -24,9 +24,9 @@ class Transaction extends Equatable implements Comparable<Transaction> {
   final String value;
   final String parcela;
   final int fatura;
-  final DateTime emission;
+  final DateTime due_date;
   const Transaction(this.date, this.name, this.value, this.fatura, this.parcela,
-      this.emission);
+      this.due_date);
 
   @override
   String toString() {
@@ -155,12 +155,12 @@ Future<List<Transaction>> itauCard(String pdfText) async {
   String parcelaRegex =
       r'(?!^\d\d\/\d\d)\d\d\/\d\d'; // Pegar se é parcelado a compra
 
-  String emissionRegex = r"(?<=Emissão:).*(?=Previsão)";
-  String? emission = RegExp(emissionRegex).firstMatch(pdfText)!.group(0)!;
-  String day = emission.substring(0, 2);
-  String month = emission.substring(3, 5);
-  String year = emission.substring(6, 10);
-  DateTime emissionDate = DateTime.parse('$year-$month-$day').toLocal();
+  String dueDateRegex = r"(?<=Vencimento:).*(?=Emissão)";
+  String? dueDateStr = RegExp(dueDateRegex).firstMatch(pdfText)!.group(0)!;
+  String day = dueDateStr.substring(0, 2);
+  String month = dueDateStr.substring(3, 5);
+  String year = dueDateStr.substring(6, 10);
+  DateTime dueDate = DateTime.parse('$year-$month-$day').toLocal();
 
   Iterable<RegExpMatch>? listPay;
   if (payments != null) {
@@ -171,14 +171,14 @@ Future<List<Transaction>> itauCard(String pdfText) async {
       String? strDate = RegExp(dateRegex).firstMatch(pay[0]!)!.group(0)!;
       String day = strDate.substring(0, 2);
       String month = strDate.substring(3, 5);
-      String year = "2023";
+      // String year = "2023";
       DateTime date = DateTime.parse('$year-$month-$day').toLocal();
 
       String? money = RegExp(moneyRegex).firstMatch(pay[0]!)!.group(1);
       String? name = RegExp(nameRegex).firstMatch(pay[0]!)!.group(0);
       String parcela = RegExp(parcelaRegex).firstMatch(pay[0]!)?.group(0) ?? "";
-      Transaction tr = Transaction(
-          date, name!, money!, faturaNum as int, parcela, emissionDate);
+      Transaction tr =
+          Transaction(date, name!, money!, faturaNum as int, parcela, dueDate);
       if (parcela != "") {
         final lst = trsParcelas.putIfAbsent(tr, () => []);
         lst.add(tr);
